@@ -23,5 +23,5 @@ app.use(async (req, res, next) => {
 app.use("/", routes)
 
 app.listen(port, async () => {
-  console.log("service", `Server running on port ${port}`)
+  console.log(`Server running on port ${port}`)
 })

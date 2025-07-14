@@ -56,7 +56,7 @@ router.post("/shorturls", async (req: Request, res: Response) => {
       expiry: expiry.toISOString(),
     }
 
-    // await info("controller", `Short URL created: ${finalShortcode}`)
+    await info("controller", `Short URL created: ${finalShortcode}`)
     res.status(201).json(response)
   } catch (err: any) {
     await error("controller", `Error creating short URL: ${err.message}`)
@@ -71,7 +71,7 @@ router.get("/shorturls/:shortcode", async (req: Request, res: Response) => {
 
     const shortUrl = await getUrl(shortcode)
     if (!shortUrl) {
-      // await warn("controller", `Shortcode not found: ${shortcode}`)
+      await warn("controller", `Shortcode not found: ${shortcode}`)
       return res.status(404).json({ error: "Short URL not found" })
     }
 
@@ -87,7 +87,7 @@ router.get("/shorturls/:shortcode", async (req: Request, res: Response) => {
       })),
     }
 
-    // await info("controller", `Stats retrieved for shortcode: ${shortcode}`)
+    await info("controller", `Stats retrieved for shortcode: ${shortcode}`)
     res.json(response)
   } catch (err: any) {
     await error("controller", `Error getting stats: ${err.message}`)
@@ -98,15 +98,16 @@ router.get("/shorturls/:shortcode", async (req: Request, res: Response) => {
 router.get("/:shortcode", async (req: Request, res: Response) => {
   try {
     const { shortcode } = req.params
+    await info("controller", `Redirecting shortcode: ${shortcode}`)
 
     const shortUrl = await getUrl(shortcode)
     if (!shortUrl) {
-
+      await warn("controller", `Shortcode not found for redirect: ${shortcode}`)
       return res.status(404).json({ error: "Short URL not found" })
     }
 
     if (new Date() > shortUrl.expiry) {
-
+      await warn("controller", `Expired shortcode accessed: ${shortcode}`)
       return res.status(410).json({ error: "Short URL has expired" })
     }
 
@@ -118,10 +119,11 @@ router.get("/:shortcode", async (req: Request, res: Response) => {
     }
 
     await addClick(shortcode, click)
+    await info("controller", `Redirecting to: ${shortUrl.url}`)
 
     res.redirect(shortUrl.url)
   } catch (err: any) {
-    
+    await error("controller", `Error redirecting: ${err.message}`)
     res.status(500).json({ error: "Internal server error" })
   }
 })
